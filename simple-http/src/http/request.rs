@@ -112,10 +112,40 @@ impl Method {
                 }
             };
         };
-    Method::Uninitialised
+        Method::Uninitialised
+    }
+
+    pub fn identify (s: &str) -> Method {
+        match s {
+            "GET" => Method::Get,
+            "POST" => Method::Post,
+             _ => Method::Uninitialised,
+        }
+    }
+
 }
 
 #[derive(debug)]
-struct Route {
-    path = String
+struct Resource {
+    path: String,
+}
+
+impl Resource {
+    pub fn new(request: &str) -> Option<Resource> {
+        if let Some((request_method, _)) = request.split_once("\r\n") {
+            let (method, rest) = request_method.split_once(' ')?;
+            return  match Method::identify(method) {
+                Method::Get | Method::Post => {
+                    let(resource, _protocol_version) = rest.split_once(' ')?;
+                    let resource = resource.trim();
+                    let resource = resource.trim_start_matches('/');
+                    return Some(Resource {
+                        path: resource.to_string(),
+                    });
+                }
+                Method::Uninitialised => None,
+            };
+        };
+        None
+    }
 }
