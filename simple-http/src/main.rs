@@ -3,28 +3,31 @@ use std::{
     net::{TcpListener, TcpStream, SocketAddr, Ipv4Addr, IpAddr},
 };
 
+use simple_http::http::request;
+
 fn create_socket() -> SocketAddr {
-    // SocketAddr::new(ip: std::net::IpAddr::V4(Ipv4Addr::LOCALHOST), port: 5500)
     SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5500)
 }
 
 fn handle_client(stream: &mut TcpStream) -> io::Result<()> {
-    // let mut buffer = [u8; 1024] = [0; 24];  
     let mut buffer = [0; 1024];  
-    // stream.read(buf: &mut buffer)?;   
     stream.read(&mut buffer)?; 
 
-    let valid_response: &str = "HTTP/1.1 200\ncontent-type: text/html\nvary: Accept-Encoding\r\n\r\n\
-    <html>
-    <body>
-    <h1>Hello World!</h1>
-    </body>
-    </html>
-    ";
+    let buf_str = String::from_utf8_lossy(&buffer);
+    let request = request::HttpRequest::new(&buf_str)?;
 
-    // stream.write(buf: &mut buffer)?;  
-    // stream.write(&mut buffer)?;
-    stream.write(valid_response.as_bytes())?; 
+    println!("{:?}", request);
+
+    // let valid_response: &str = "HTTP/1.1 200\ncontent-type: text/html\nvary: Accept-Encoding\r\n\r\n\
+    // <html>
+    // <body>
+    // <h1>Hello World!</h1>
+    // </body>
+    // </html>
+    // ";
+
+    // stream.write(valid_response.as_bytes())?; 
+    stream.write(&mut buffer)?;    
     stream.flush()?;
     Ok(())
 }
